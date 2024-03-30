@@ -1,8 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"os"
+
+	"github.com/uchijo/bf-eval/tool"
 )
 
 func main() {
@@ -11,67 +12,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	parsed := tool.Parse(b)
 
-	eval(b)
-}
-
-func eval(src []uint8) {
-	mem := map[int]uint8{}
-	memPtr := 0
-	pc := 0
-
-	for {
-		if pc >= len(src) {
-			break
-		}
-
-		switch src[pc] {
-		case '>':
-			memPtr++
-		case '<':
-			memPtr--
-		case '+':
-			mem[memPtr]++
-		case '-':
-			mem[memPtr]--
-		case '.':
-			fmt.Print(string(mem[memPtr]))
-		case ',':
-			// not implemented
-		case '[':
-			if mem[memPtr] == 0 {
-				// find matching ']'
-				nest := 1
-				for {
-					pc++
-					if src[pc] == '[' {
-						nest++
-					} else if src[pc] == ']' {
-						nest--
-						if nest == 0 {
-							break
-						}
-					}
-				}
-			}
-		case ']':
-			if mem[memPtr] != 0 {
-				// find matching '['
-				nest := 1
-				for {
-					pc--
-					if src[pc] == ']' {
-						nest++
-					} else if src[pc] == '[' {
-						nest--
-						if nest == 0 {
-							break
-						}
-					}
-				}
-			}
-		}
-
-		pc++
-	}
+	tool.Eval(parsed)
 }
