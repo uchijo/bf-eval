@@ -30,9 +30,9 @@ func Eval(src []instr.Instruction) {
 		case instr.OpShiftLeft:
 			memPtr -= int(src[pc].Data)
 		case instr.OpIncr:
-			mem[memPtr] += src[pc].Data
+			mem[memPtr] += uint8(src[pc].Data)
 		case instr.OpDecr:
-			mem[memPtr] -= src[pc].Data
+			mem[memPtr] -= uint8(src[pc].Data)
 		case instr.OpOutput:
 			fmt.Fprint(w, string(mem[memPtr]))
 		case instr.OpInput:
@@ -47,6 +47,9 @@ func Eval(src []instr.Instruction) {
 			if mem[memPtr] != 0 {
 				pc = jumpDest[pc]
 			}
+		case instr.OpCopy:
+			mem[memPtr+int(src[pc].Data)] += mem[memPtr]
+			mem[memPtr] = 0
 		}
 
 		pc++

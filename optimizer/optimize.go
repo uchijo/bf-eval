@@ -6,5 +6,6 @@ func Optimize(src []instr.Instruction) []instr.Instruction {
 	src = ResetToZeroPattern(src)
 	src = SumShift(src)
 	src = SumIncrDecr(src)
+	src = FindCopy(src)
 	return src
 }

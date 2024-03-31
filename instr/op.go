@@ -17,11 +17,12 @@ const (
 	OpZeroReset
 	OpLoopStart
 	OpLoopEnd
+	OpCopy
 )
 
 type Instruction struct {
 	Op   Op
-	Data uint8
+	Data int16
 }
 
 func NewInstruction(ch uint8) (Instruction, error) {
