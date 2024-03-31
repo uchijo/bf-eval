@@ -7,26 +7,37 @@ import (
 )
 
 func DumpInstr(src []instr.Instruction) {
+	nest := 0
 	for _, i := range src {
 		switch i.Op {
 		case instr.OpShiftRight:
-			fmt.Println("ShiftRight", i.Data)
+			fmt.Printf("%vShiftRight %v\n", padding(nest), i.Data)
 		case instr.OpShiftLeft:
-			fmt.Println("ShiftLeft", i.Data)
+			fmt.Printf("%vShiftLeft %v\n", padding(nest), i.Data)
 		case instr.OpIncr:
-			fmt.Println("Incr")
+			fmt.Printf("%vIncr %v\n", padding(nest), i.Data)
 		case instr.OpDecr:
-			fmt.Println("Decr")
+			fmt.Printf("%vDecr %v\n", padding(nest), i.Data)
 		case instr.OpOutput:
-			fmt.Println("Output")
+			fmt.Printf("%vOutput\n", padding(nest))
 		case instr.OpInput:
-			fmt.Println("Input")
+			fmt.Printf("%vInput\n", padding(nest))
 		case instr.OpZeroReset:
-			fmt.Println("ZeroReset")
+			fmt.Printf("%vZeroReset\n", padding(nest))
 		case instr.OpLoopStart:
-			fmt.Println("LoopStart")
+			fmt.Printf("%vLoopStart\n", padding(nest))
+			nest++
 		case instr.OpLoopEnd:
-			fmt.Println("LoopEnd")
+			nest--
+			fmt.Printf("%vLoopEnd\n", padding(nest))
 		}
 	}
+}
+
+func padding(n int) string {
+	s := ""
+	for i := 0; i < n; i++ {
+		s += "  "
+	}
+	return s
 }
