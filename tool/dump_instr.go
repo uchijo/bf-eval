@@ -1,28 +1,32 @@
 package tool
 
-import "github.com/uchijo/bf-eval/instr"
+import (
+	"fmt"
+
+	"github.com/uchijo/bf-eval/instr"
+)
 
 func DumpInstr(src []instr.Instruction) {
 	for _, i := range src {
 		switch i.Op {
 		case instr.OpShiftRight:
-			println("ShiftRight", i.Data)
+			fmt.Println("ShiftRight", i.Data)
 		case instr.OpShiftLeft:
-			println("ShiftLeft", i.Data)
+			fmt.Println("ShiftLeft", i.Data)
 		case instr.OpIncr:
-			println("Incr")
+			fmt.Println("Incr")
 		case instr.OpDecr:
-			println("Decr")
+			fmt.Println("Decr")
 		case instr.OpOutput:
-			println("Output")
+			fmt.Println("Output")
 		case instr.OpInput:
-			println("Input")
+			fmt.Println("Input")
 		case instr.OpZeroReset:
-			println("ZeroReset")
+			fmt.Println("ZeroReset")
 		case instr.OpLoopStart:
-			println("LoopStart")
+			fmt.Println("LoopStart")
 		case instr.OpLoopEnd:
-			println("LoopEnd")
+			fmt.Println("LoopEnd")
 		}
 	}
 }

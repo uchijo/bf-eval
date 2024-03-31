@@ -31,9 +31,9 @@ func NewInstruction(ch uint8) (Instruction, error) {
 	case '<':
 		return Instruction{Op: OpShiftLeft, Data: 1}, nil
 	case '+':
-		return Instruction{Op: OpIncr}, nil
+		return Instruction{Op: OpIncr, Data: 1}, nil
 	case '-':
-		return Instruction{Op: OpDecr}, nil
+		return Instruction{Op: OpDecr, Data: 1}, nil
 	case '.':
 		return Instruction{Op: OpOutput}, nil
 	case ',':
