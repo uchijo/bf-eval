@@ -11,7 +11,7 @@ const (
 	OpLoopEnd Op = iota
 	OpShiftRight
 	OpShiftLeft
-	OpCopy
+	OpAddMem
 	OpLoopStart
 	OpIncr
 	OpDecr

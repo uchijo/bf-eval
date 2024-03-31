@@ -34,7 +34,7 @@ func Eval(src []instr.Instruction) {
 			memPtr += int(src[pc].Data)
 		case instr.OpShiftLeft:
 			memPtr -= int(src[pc].Data)
-		case instr.OpCopy:
+		case instr.OpAddMem:
 			mem.AddTo(memPtr+int(src[pc].Data), mem.Get(memPtr))
 			mem.Set(memPtr, 0)
 		case instr.OpLoopStart:

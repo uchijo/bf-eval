@@ -30,8 +30,8 @@ func DumpInstr(src []instr.Instruction) {
 		case instr.OpLoopEnd:
 			nest--
 			fmt.Printf("%vLoopEnd\n", padding(nest))
-		case instr.OpCopy:
-			fmt.Printf("%vCopy %v\n", padding(nest), i.Data)
+		case instr.OpAddMem:
+			fmt.Printf("%vAddMem %v\n", padding(nest), i.Data)
 		case instr.OpMultiShift:
 			fmt.Printf("%vMultiShift %v\n", padding(nest), i.Data)
 		}

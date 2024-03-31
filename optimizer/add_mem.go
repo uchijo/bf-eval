@@ -11,17 +11,17 @@ import (
 // 	Incr 1
 // 	ShiftLeft n
 // LoopEnd
-// これをOpCopyに割り付ける
+// これをOpAddMemに割り付ける
 
-func FindCopy(src []instr.Instruction) []instr.Instruction {
+func FindAddMem(src []instr.Instruction) []instr.Instruction {
 	var copy []instr.Instruction
 	for i := 0; i < len(src); i++ {
-		if matchCopy(src, i) {
+		if matchAddMem(src, i) {
 			var newInst instr.Instruction
 			if src[i+2].Op == instr.OpShiftRight {
-				newInst = instr.Instruction{Op: instr.OpCopy, Data: src[i+2].Data}
+				newInst = instr.Instruction{Op: instr.OpAddMem, Data: src[i+2].Data}
 			} else {
-				newInst = instr.Instruction{Op: instr.OpCopy, Data: -src[i+2].Data}
+				newInst = instr.Instruction{Op: instr.OpAddMem, Data: -src[i+2].Data}
 			}
 			copy = append(copy, newInst)
 			i += 5
@@ -32,7 +32,7 @@ func FindCopy(src []instr.Instruction) []instr.Instruction {
 	return copy
 }
 
-func matchCopy(src []instr.Instruction, pos int) bool {
+func matchAddMem(src []instr.Instruction, pos int) bool {
 	if pos+5 >= len(src) {
 		return false
 	}
