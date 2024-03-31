@@ -17,6 +17,7 @@ const (
 	OpDecr
 	OpZeroReset
 	OpMultiShift
+	OpSubMem
 	OpOutput
 	OpInput
 )

@@ -51,6 +51,9 @@ func Eval(src []instr.Instruction) {
 			for mem.Get(memPtr) != 0 {
 				memPtr += int(src[pc].Data)
 			}
+		case instr.OpSubMem:
+			mem.SubFrom(memPtr+int(src[pc].Data), mem.Get(memPtr))
+			mem.Set(memPtr, 0)
 		case instr.OpOutput:
 			fmt.Fprint(w, string(mem.Get(memPtr)))
 			// case instr.OpInput:

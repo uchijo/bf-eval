@@ -34,6 +34,8 @@ func DumpInstr(src []instr.Instruction) {
 			fmt.Printf("%vAddMem %v\n", padding(nest), i.Data)
 		case instr.OpMultiShift:
 			fmt.Printf("%vMultiShift %v\n", padding(nest), i.Data)
+		case instr.OpSubMem:
+			fmt.Printf("%vSubMem %v\n", padding(nest), i.Data)
 		}
 	}
 }
