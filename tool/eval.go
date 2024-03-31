@@ -1,12 +1,17 @@
 package tool
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 
 	"github.com/uchijo/bf-eval/instr"
 )
 
 func Eval(src []instr.Instruction) {
+	w := bufio.NewWriter(os.Stdout)
+	defer w.Flush()
+
 	mem := map[int]uint8{}
 	memPtr := 0
 	pc := 0
@@ -28,7 +33,7 @@ func Eval(src []instr.Instruction) {
 		case instr.OpDecr:
 			mem[memPtr]--
 		case instr.OpOutput:
-			fmt.Print(string(mem[memPtr]))
+			fmt.Fprint(w, string(mem[memPtr]))
 		case instr.OpInput:
 			// not implemented
 		case instr.OpZeroReset:
