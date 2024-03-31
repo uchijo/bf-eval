@@ -15,7 +15,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	parsed := tool.Parse(b)
+	parsed, err := tool.Parse(b)
+	if err != nil {
+		panic(err)
+	}
 
 	// write result to ../result-<timestamp>.pprof
 	filename := fmt.Sprintf("profile/result-%d.pprof", time.Now().Unix())

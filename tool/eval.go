@@ -1,8 +1,12 @@
 package tool
 
-import "fmt"
+import (
+	"fmt"
 
-func Eval(src []uint8) {
+	"github.com/uchijo/bf-eval/instr"
+)
+
+func Eval(src []instr.Instruction) {
 	mem := map[int]uint8{}
 	memPtr := 0
 	pc := 0
@@ -14,26 +18,26 @@ func Eval(src []uint8) {
 			break
 		}
 
-		switch src[pc] {
-		case '>':
+		switch src[pc].Op {
+		case instr.OpShiftRight:
 			memPtr++
-		case '<':
+		case instr.OpShiftLeft:
 			memPtr--
-		case '+':
+		case instr.OpIncr:
 			mem[memPtr]++
-		case '-':
+		case instr.OpDecr:
 			mem[memPtr]--
-		case '.':
+		case instr.OpOutput:
 			fmt.Print(string(mem[memPtr]))
-		case ',':
+		case instr.OpInput:
 			// not implemented
-		case '0':
+		case instr.OpZeroReset:
 			mem[memPtr] = 0
-		case '[':
+		case instr.OpLoopStart:
 			if mem[memPtr] == 0 {
 				pc = jumpDest[pc]
 			}
-		case ']':
+		case instr.OpLoopEnd:
 			if mem[memPtr] != 0 {
 				pc = jumpDest[pc]
 			}
@@ -44,11 +48,11 @@ func Eval(src []uint8) {
 }
 
 // find [-] pattern and replace it with 0
-func resetToZeroPattern(src []uint8) []uint8 {
-	retval := []uint8{}
+func resetToZeroPattern(src []instr.Instruction) []instr.Instruction {
+	retval := []instr.Instruction{}
 	for i := 0; i < len(src); i++ {
-		if i+2 < len(src) && src[i] == '[' && src[i+1] == '-' && src[i+2] == ']' {
-			retval = append(retval, '0')
+		if i+2 < len(src) && src[i].Op == instr.OpLoopStart && src[i+1].Op == instr.OpDecr && src[i+2].Op == instr.OpLoopEnd {
+			retval = append(retval, instr.Instruction{Op: instr.OpZeroReset})
 			i += 2
 		} else {
 			retval = append(retval, src[i])
@@ -57,17 +61,17 @@ func resetToZeroPattern(src []uint8) []uint8 {
 	return retval
 }
 
-func cacheJumpDest(src []uint8) map[int]int {
+func cacheJumpDest(src []instr.Instruction) map[int]int {
 	jumpDest := map[int]int{}
 	for pc, c := range src {
-		if c == '[' {
+		if c.Op == instr.OpLoopStart {
 			start := pc
 			nest := 1
 			for {
 				start++
-				if src[start] == '[' {
+				if src[start].Op == instr.OpLoopStart {
 					nest++
-				} else if src[start] == ']' {
+				} else if src[start].Op == instr.OpLoopEnd {
 					nest--
 					if nest == 0 {
 						break
@@ -77,14 +81,14 @@ func cacheJumpDest(src []uint8) map[int]int {
 				}
 			}
 			jumpDest[pc] = start
-		} else if c == ']' {
+		} else if c.Op == instr.OpLoopEnd {
 			start := pc
 			nest := 1
 			for {
 				start--
-				if src[start] == ']' {
+				if src[start].Op == instr.OpLoopEnd {
 					nest++
-				} else if src[start] == '[' {
+				} else if src[start].Op == instr.OpLoopStart {
 					nest--
 					if nest == 0 {
 						break

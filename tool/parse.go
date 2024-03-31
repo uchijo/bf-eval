@@ -1,12 +1,18 @@
 package tool
 
-func Parse(input []uint8) []uint8 {
-	retval := []uint8{}
+import "github.com/uchijo/bf-eval/instr"
+
+func Parse(input []uint8) ([]instr.Instruction, error) {
+	retval := []instr.Instruction{}
 	for _, c := range input {
 		switch c {
 		case '>', '<', '+', '-', '.', ',', '[', ']':
-			retval = append(retval, c)
+			inst, err := instr.NewInstruction(c)
+			if err != nil {
+				return nil, err
+			}
+			retval = append(retval, inst)
 		}
 	}
-	return retval
+	return retval, nil
 }
