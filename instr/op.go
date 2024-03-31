@@ -22,6 +22,7 @@ const (
 
 type Instruction struct {
 	Op   Op
+	pad  uint8
 	Data int16
 }
 
