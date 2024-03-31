@@ -9,8 +9,10 @@ import (
 )
 
 func Eval(src []instr.Instruction) {
-	w := bufio.NewWriter(os.Stdout)
+	w := bufio.NewWriterSize(os.Stdout, 8192)
 	defer w.Flush()
+
+	buf := make([]byte, 0, 4096)
 
 	mem := NewMemStore()
 	var memPtr int32 = 0
@@ -54,13 +56,20 @@ func Eval(src []instr.Instruction) {
 			mem.SubFrom(memPtr+src[pc].Data, mem.Get(memPtr))
 			mem.Set(memPtr, 0)
 		case instr.OpOutput:
-			w.WriteByte(mem.Get(memPtr))
+			buf = append(buf, mem.Get(memPtr))
+			if len(buf) >= 4096 {
+				w.Write(buf)
+				buf = make([]byte, 0, 4096)
+			}
 			// case instr.OpInput:
 			// 	counts[instr.OpInput]++
 			// 	// not implemented
 		}
 
 		pc++
+	}
+	if len(buf) > 0 {
+		w.Write(buf)
 	}
 }
 
