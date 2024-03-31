@@ -1,7 +1,6 @@
 package tool
 
 import (
-	"bufio"
 	"os"
 
 	"github.com/uchijo/bf-eval/instr"
@@ -9,10 +8,8 @@ import (
 )
 
 func Eval(src []instr.Instruction) {
-	w := bufio.NewWriterSize(os.Stdout, 8192)
-	defer w.Flush()
-
-	buf := make([]byte, 0, 4096)
+	buf := []byte{}
+	w := os.Stdout
 
 	mem := NewMemStore()
 	var memPtr int32 = 0
@@ -59,7 +56,7 @@ func Eval(src []instr.Instruction) {
 			buf = append(buf, mem.Get(memPtr))
 			if len(buf) >= 4096 {
 				w.Write(buf)
-				buf = make([]byte, 0, 4096)
+				buf = []byte{}
 			}
 			// case instr.OpInput:
 			// 	counts[instr.OpInput]++
