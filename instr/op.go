@@ -20,27 +20,28 @@ const (
 )
 
 type Instruction struct {
-	Op Op
+	Op   Op
+	Data uint8
 }
 
 func NewInstruction(ch uint8) (Instruction, error) {
 	switch ch {
 	case '>':
-		return Instruction{OpShiftRight}, nil
+		return Instruction{Op: OpShiftRight, Data: 1}, nil
 	case '<':
-		return Instruction{OpShiftLeft}, nil
+		return Instruction{Op: OpShiftLeft, Data: 1}, nil
 	case '+':
-		return Instruction{OpIncr}, nil
+		return Instruction{Op: OpIncr}, nil
 	case '-':
-		return Instruction{OpDecr}, nil
+		return Instruction{Op: OpDecr}, nil
 	case '.':
-		return Instruction{OpOutput}, nil
+		return Instruction{Op: OpOutput}, nil
 	case ',':
-		return Instruction{OpInput}, nil
+		return Instruction{Op: OpInput}, nil
 	case '[':
-		return Instruction{OpLoopStart}, nil
+		return Instruction{Op: OpLoopStart}, nil
 	case ']':
-		return Instruction{OpLoopEnd}, nil
+		return Instruction{Op: OpLoopEnd}, nil
 	}
 
 	return Instruction{}, errors.New(fmt.Sprintf("Invalid instruction: %c", ch))

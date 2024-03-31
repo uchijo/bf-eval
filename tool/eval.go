@@ -16,6 +16,7 @@ func Eval(src []instr.Instruction) {
 	memPtr := 0
 	pc := 0
 	src = resetToZeroPattern(src)
+	src = SumShift(src)
 	jumpDest := cacheJumpDest(src)
 
 	for {
@@ -25,9 +26,9 @@ func Eval(src []instr.Instruction) {
 
 		switch src[pc].Op {
 		case instr.OpShiftRight:
-			memPtr++
+			memPtr += int(src[pc].Data)
 		case instr.OpShiftLeft:
-			memPtr--
+			memPtr -= int(src[pc].Data)
 		case instr.OpIncr:
 			mem[memPtr]++
 		case instr.OpDecr:
