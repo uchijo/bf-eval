@@ -2,7 +2,6 @@ package tool
 
 import (
 	"bufio"
-	"fmt"
 	"os"
 
 	"github.com/uchijo/bf-eval/instr"
@@ -52,7 +51,7 @@ func Eval(src []instr.Instruction) {
 				memPtr += int(src[pc].Data)
 			}
 		case instr.OpOutput:
-			fmt.Fprint(w, string(mem.Get(memPtr)))
+			w.WriteByte(mem.Get(memPtr))
 			// case instr.OpInput:
 			// 	counts[instr.OpInput]++
 			// 	// not implemented
