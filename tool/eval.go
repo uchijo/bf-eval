@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/uchijo/bf-eval/instr"
+	"github.com/uchijo/bf-eval/optimizer"
 )
 
 func Eval(src []instr.Instruction) {
@@ -15,8 +16,7 @@ func Eval(src []instr.Instruction) {
 	mem := map[int]uint8{}
 	memPtr := 0
 	pc := 0
-	src = resetToZeroPattern(src)
-	src = SumShift(src)
+	src = optimizer.Optimize(src)
 	jumpDest := cacheJumpDest(src)
 
 	for {
@@ -51,20 +51,6 @@ func Eval(src []instr.Instruction) {
 
 		pc++
 	}
-}
-
-// find [-] pattern and replace it with 0
-func resetToZeroPattern(src []instr.Instruction) []instr.Instruction {
-	retval := []instr.Instruction{}
-	for i := 0; i < len(src); i++ {
-		if i+2 < len(src) && src[i].Op == instr.OpLoopStart && src[i+1].Op == instr.OpDecr && src[i+2].Op == instr.OpLoopEnd {
-			retval = append(retval, instr.Instruction{Op: instr.OpZeroReset})
-			i += 2
-		} else {
-			retval = append(retval, src[i])
-		}
-	}
-	return retval
 }
 
 func cacheJumpDest(src []instr.Instruction) map[int]int {

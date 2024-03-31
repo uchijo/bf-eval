@@ -1,4 +1,4 @@
-package tool
+package optimizer
 
 import "github.com/uchijo/bf-eval/instr"
 
