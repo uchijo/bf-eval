@@ -25,35 +25,38 @@ func Eval(src []instr.Instruction) {
 		}
 
 		switch src[pc].Op {
+		case instr.OpLoopEnd:
+			if mem.Get(memPtr) != 0 {
+				pc = jumpDest[pc]
+			}
 		case instr.OpShiftRight:
 			memPtr += int(src[pc].Data)
 		case instr.OpShiftLeft:
 			memPtr -= int(src[pc].Data)
-		case instr.OpIncr:
-			mem.AddTo(memPtr, uint8(src[pc].Data))
-		case instr.OpDecr:
-			mem.SubFrom(memPtr, uint8(src[pc].Data))
-		case instr.OpOutput:
-			fmt.Fprint(w, string(mem.Get(memPtr)))
-		case instr.OpInput:
-			// not implemented
-		case instr.OpZeroReset:
+		case instr.OpCopy:
+			mem.AddTo(memPtr+int(src[pc].Data), mem.Get(memPtr))
 			mem.Set(memPtr, 0)
 		case instr.OpLoopStart:
 			if mem.Get(memPtr) == 0 {
 				pc = jumpDest[pc]
 			}
-		case instr.OpLoopEnd:
-			if mem.Get(memPtr) != 0 {
-				pc = jumpDest[pc]
-			}
-		case instr.OpCopy:
-			mem.AddTo(memPtr+int(src[pc].Data), mem.Get(memPtr))
+		case instr.OpIncr:
+			mem.AddTo(memPtr, uint8(src[pc].Data))
+		case instr.OpDecr:
+			mem.SubFrom(memPtr, uint8(src[pc].Data))
+		case instr.OpZeroReset:
 			mem.Set(memPtr, 0)
+		case instr.OpOutput:
+			fmt.Fprint(w, string(mem.Get(memPtr)))
+			// case instr.OpInput:
+			// 	counts[instr.OpInput]++
+			// 	// not implemented
 		}
 
 		pc++
 	}
+
+	// fmt.Fprintf(w, "counts: %v\n", counts)
 }
 
 func cacheJumpDest(src []instr.Instruction) []int {

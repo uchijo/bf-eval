@@ -8,16 +8,16 @@ import (
 type Op uint8
 
 const (
-	OpShiftRight Op = iota
+	OpLoopEnd Op = iota
+	OpShiftRight
 	OpShiftLeft
+	OpCopy
+	OpLoopStart
 	OpIncr
 	OpDecr
+	OpZeroReset
 	OpOutput
 	OpInput
-	OpZeroReset
-	OpLoopStart
-	OpLoopEnd
-	OpCopy
 )
 
 type Instruction struct {
