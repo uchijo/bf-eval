@@ -18,9 +18,10 @@ func Eval(src []instr.Instruction) {
 	pc := 0
 	src = optimizer.Optimize(src)
 	jumpDest := cacheJumpDest(src)
+	programLen := len(src)
 
 	for {
-		if pc >= len(src) {
+		if pc >= programLen {
 			break
 		}
 
@@ -46,6 +47,10 @@ func Eval(src []instr.Instruction) {
 			mem.SubFrom(memPtr, uint8(src[pc].Data))
 		case instr.OpZeroReset:
 			mem.Set(memPtr, 0)
+		case instr.OpMultiShift:
+			for mem.Get(memPtr) != 0 {
+				memPtr += int(src[pc].Data)
+			}
 		case instr.OpOutput:
 			fmt.Fprint(w, string(mem.Get(memPtr)))
 			// case instr.OpInput:
@@ -55,8 +60,6 @@ func Eval(src []instr.Instruction) {
 
 		pc++
 	}
-
-	// fmt.Fprintf(w, "counts: %v\n", counts)
 }
 
 func cacheJumpDest(src []instr.Instruction) []int {
