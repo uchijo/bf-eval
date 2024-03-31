@@ -14,7 +14,7 @@ func Eval(src []instr.Instruction) {
 	defer w.Flush()
 
 	mem := NewMemStore()
-	memPtr := 0
+	var memPtr int32 = 0
 	pc := 0
 	src = optimizer.Optimize(src)
 	jumpDest := cacheJumpDest(src)
@@ -31,11 +31,11 @@ func Eval(src []instr.Instruction) {
 				pc = jumpDest[pc]
 			}
 		case instr.OpShiftRight:
-			memPtr += int(src[pc].Data)
+			memPtr += src[pc].Data
 		case instr.OpShiftLeft:
-			memPtr -= int(src[pc].Data)
+			memPtr -= src[pc].Data
 		case instr.OpAddMem:
-			mem.AddTo(memPtr+int(src[pc].Data), mem.Get(memPtr))
+			mem.AddTo(memPtr+src[pc].Data, mem.Get(memPtr))
 			mem.Set(memPtr, 0)
 		case instr.OpLoopStart:
 			if mem.Get(memPtr) == 0 {
@@ -49,10 +49,10 @@ func Eval(src []instr.Instruction) {
 			mem.Set(memPtr, 0)
 		case instr.OpMultiShift:
 			for mem.Get(memPtr) != 0 {
-				memPtr += int(src[pc].Data)
+				memPtr += src[pc].Data
 			}
 		case instr.OpSubMem:
-			mem.SubFrom(memPtr+int(src[pc].Data), mem.Get(memPtr))
+			mem.SubFrom(memPtr+src[pc].Data, mem.Get(memPtr))
 			mem.Set(memPtr, 0)
 		case instr.OpOutput:
 			fmt.Fprint(w, string(mem.Get(memPtr)))
