@@ -13,7 +13,7 @@ func Eval(src []instr.Instruction) {
 	w := bufio.NewWriter(os.Stdout)
 	defer w.Flush()
 
-	mem := map[int]uint8{}
+	mem := NewMemStore()
 	memPtr := 0
 	pc := 0
 	src = optimizer.Optimize(src)
@@ -30,33 +30,33 @@ func Eval(src []instr.Instruction) {
 		case instr.OpShiftLeft:
 			memPtr -= int(src[pc].Data)
 		case instr.OpIncr:
-			mem[memPtr] += uint8(src[pc].Data)
+			mem.AddTo(memPtr, uint8(src[pc].Data))
 		case instr.OpDecr:
-			mem[memPtr] -= uint8(src[pc].Data)
+			mem.SubFrom(memPtr, uint8(src[pc].Data))
 		case instr.OpOutput:
-			fmt.Fprint(w, string(mem[memPtr]))
+			fmt.Fprint(w, string(mem.Get(memPtr)))
 		case instr.OpInput:
 			// not implemented
 		case instr.OpZeroReset:
-			mem[memPtr] = 0
+			mem.Set(memPtr, 0)
 		case instr.OpLoopStart:
-			if mem[memPtr] == 0 {
+			if mem.Get(memPtr) == 0 {
 				pc = jumpDest[pc]
 			}
 		case instr.OpLoopEnd:
-			if mem[memPtr] != 0 {
+			if mem.Get(memPtr) != 0 {
 				pc = jumpDest[pc]
 			}
 		case instr.OpCopy:
-			mem[memPtr+int(src[pc].Data)] += mem[memPtr]
-			mem[memPtr] = 0
+			mem.AddTo(memPtr+int(src[pc].Data), mem.Get(memPtr))
+			mem.Set(memPtr, 0)
 		}
 
 		pc++
 	}
 }
 
-func cacheJumpDest(src []instr.Instruction)[]int {
+func cacheJumpDest(src []instr.Instruction) []int {
 	jumpDest := make([]int, len(src))
 	for pc, c := range src {
 		if c.Op == instr.OpLoopStart {
