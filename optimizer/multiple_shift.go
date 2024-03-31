@@ -11,11 +11,11 @@ func MultipleShift(src []instr.Instruction) []instr.Instruction {
 	retval := []instr.Instruction{}
 	for i := 0; i < len(src); i++ {
 		if matchMultipleShift(src, i) {
-			var shift int16
+			var shift int32
 			if src[i+1].Op == instr.OpShiftRight {
-				shift = int16(src[i+1].Data)
+				shift = src[i+1].Data
 			} else {
-				shift = -int16(src[i+1].Data)
+				shift = -src[i+1].Data
 			}
 			retval = append(retval, instr.Instruction{
 				Op:   instr.OpMultiShift,

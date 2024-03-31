@@ -10,14 +10,14 @@ func SumShift(src []instr.Instruction) []instr.Instruction {
 			j := SearchCont(src, instr.OpShiftRight, i)
 			retval = append(retval, instr.Instruction{
 				Op:   instr.OpShiftRight,
-				Data: int16(j - i),
+				Data: int32(j - i),
 			})
 			i = j - 1
 		} else if src[i].Op == instr.OpShiftLeft {
 			j := SearchCont(src, instr.OpShiftLeft, i)
 			retval = append(retval, instr.Instruction{
 				Op:   instr.OpShiftLeft,
-				Data: int16(j - i),
+				Data: int32(j - i),
 			})
 			i = j - 1
 		} else {

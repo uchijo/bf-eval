@@ -11,12 +11,13 @@ const (
 	OpLoopEnd Op = iota
 	OpShiftRight
 	OpShiftLeft
-	OpCopy
+	OpAddMem
 	OpLoopStart
 	OpIncr
 	OpDecr
 	OpZeroReset
 	OpMultiShift
+	OpSubMem
 	OpOutput
 	OpInput
 )
@@ -24,7 +25,8 @@ const (
 type Instruction struct {
 	Op   Op
 	pad  uint8
-	Data int16
+	pad2  uint16
+	Data int32
 }
 
 func NewInstruction(ch uint8) (Instruction, error) {
