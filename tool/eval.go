@@ -56,8 +56,8 @@ func Eval(src []instr.Instruction) {
 	}
 }
 
-func cacheJumpDest(src []instr.Instruction) map[int]int {
-	jumpDest := map[int]int{}
+func cacheJumpDest(src []instr.Instruction)[]int {
+	jumpDest := make([]int, len(src))
 	for pc, c := range src {
 		if c.Op == instr.OpLoopStart {
 			start := pc
