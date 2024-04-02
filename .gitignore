@@ -1,1 +1,5 @@
 *.pprof
+optimized-bf
+optimized-bf.s
+optimized-bf.ll
+compiled-bf.ll
