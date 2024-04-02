@@ -22,7 +22,7 @@ type program struct {
 func NewProgram(w io.Writer) *program {
 	return &program{
 		w:          w,
-		localIndex: 4,
+		localIndex: 7,
 	}
 }
 
@@ -51,7 +51,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	hoge := optimizer.SumIncrDecr(parseed)
+	hoge := optimizer.SumShift(optimizer.SumIncrDecr(parseed))
 
 	buf := strings.Builder{}
 	p := NewProgram(&buf)
@@ -83,10 +83,14 @@ func main() {
 func (p *program) emitHeader() {
 	p.w.Write([]byte("define i32 @main() {\n"))
 	p.w.Write([]byte("  %1 = alloca ptr, align 8\n"))
-	p.w.Write([]byte("  %2 = alloca i32, align 4\n"))
+	p.w.Write([]byte("  %2 = alloca ptr, align 8\n"))
 	p.w.Write([]byte("  %3 = call noalias ptr @calloc(i64 noundef 4096, i64 noundef 1) #3\n"))
 	p.w.Write([]byte("  store ptr %3, ptr %1, align 8\n"))
-	p.w.Write([]byte("  store i32 2048, ptr %2, align 4\n\n"))
+	p.w.Write([]byte("  %4 = load ptr, ptr %1, align 8\n"))
+	p.w.Write([]byte("  store ptr %4, ptr %2, align 8\n"))
+	p.w.Write([]byte("  %5 = load ptr, ptr %2, align 8\n"))
+	p.w.Write([]byte("  %6 = getelementptr inbounds i8, ptr %5, i64 2048\n"))
+	p.w.Write([]byte("  store ptr %6, ptr %2, align 8\n"))
 }
 
 func (p *program) emitFooter() {
@@ -99,61 +103,51 @@ func (p *program) emitFooter() {
 }
 
 func (p *program) emitMovePtr(offset int32, isAdd bool) {
-	p.w.Write([]byte(fmt.Sprintf("  %%%v = load i32, ptr %%2, align 4\n", p.localIndex)))
+	p.w.Write([]byte(fmt.Sprintf("%%%v = load ptr, ptr %%2, align 8\n", p.localIndex)))
 	if isAdd {
-		p.w.Write([]byte(fmt.Sprintf("  %%%v = add i32 %%%v, %v\n", p.localIndex+1, p.localIndex, offset)))
+		p.w.Write([]byte(fmt.Sprintf("%%%v = getelementptr inbounds i8, ptr %%%v, i32 %v\n", p.localIndex+1, p.localIndex, offset)))
 	} else {
-		p.w.Write([]byte(fmt.Sprintf("  %%%v = sub i32 %%%v, %v\n", p.localIndex+1, p.localIndex, offset)))
+		p.w.Write([]byte(fmt.Sprintf("%%%v = getelementptr inbounds i8, ptr %%%v, i32 -%v\n", p.localIndex+1, p.localIndex, offset)))
 	}
-	p.w.Write([]byte(fmt.Sprintf("  store i32 %%%v, ptr %%2, align 4\n\n", p.localIndex+1)))
+	p.w.Write([]byte(fmt.Sprintf("store ptr %%%v, ptr %%2, align 8\n", p.localIndex+1)))
 	p.localIndex += 2
 }
 
 func (p *program) emitAdd(offset int32) {
 	// load
-	p.w.Write([]byte(fmt.Sprintf("  %%%v = load ptr, ptr %%1, align 8\n", p.localIndex)))
-	p.w.Write([]byte(fmt.Sprintf("  %%%v = load i32, ptr %%2, align 4\n", p.localIndex+1)))
-	p.w.Write([]byte(fmt.Sprintf("  %%%v = zext i32 %%%v to i64\n", p.localIndex+2, p.localIndex+1)))
-	p.w.Write([]byte(fmt.Sprintf("  %%%v = getelementptr inbounds i8, ptr %%%v, i64 %%%v\n", p.localIndex+3, p.localIndex, p.localIndex+2)))
+	p.w.Write([]byte(fmt.Sprintf("  %%%v = load ptr, ptr %%2, align 8\n", p.localIndex)))
 
 	// add
-	p.w.Write([]byte(fmt.Sprintf("  %%%v = load i8, ptr %%%v, align 1\n", p.localIndex+4, p.localIndex+3)))
-	p.w.Write([]byte(fmt.Sprintf("  %%%v = add i8 %%%v, %v\n", p.localIndex+5, p.localIndex+4, offset)))
+	p.w.Write([]byte(fmt.Sprintf("  %%%v = load i8, ptr %%%v, align 4\n", p.localIndex+1, p.localIndex)))
+	p.w.Write([]byte(fmt.Sprintf("  %%%v = add i8 %%%v, %v\n", p.localIndex+2, p.localIndex+1, offset)))
 
 	// save
-	p.w.Write([]byte(fmt.Sprintf("  store i8 %%%v, ptr %%%v, align 1\n\n", p.localIndex+5, p.localIndex+3)))
+	p.w.Write([]byte(fmt.Sprintf("  store i8 %%%v, ptr %%%v, align 1\n\n", p.localIndex+2, p.localIndex)))
 
-	p.localIndex += 6
+	p.localIndex += 3
 }
 
 func (p *program) emitSub(offset int32) {
 	// load
-	p.w.Write([]byte("; sub\n"))
-	p.w.Write([]byte(fmt.Sprintf("  %%%v = load ptr, ptr %%1, align 8\n", p.localIndex)))
-	p.w.Write([]byte(fmt.Sprintf("  %%%v = load i32, ptr %%2, align 4\n", p.localIndex+1)))
-	p.w.Write([]byte(fmt.Sprintf("  %%%v = zext i32 %%%v to i64\n", p.localIndex+2, p.localIndex+1)))
-	p.w.Write([]byte(fmt.Sprintf("  %%%v = getelementptr inbounds i8, ptr %%%v, i64 %%%v\n", p.localIndex+3, p.localIndex, p.localIndex+2)))
+	p.w.Write([]byte(fmt.Sprintf("  %%%v = load ptr, ptr %%2, align 8\n", p.localIndex)))
 
-	// sub
-	p.w.Write([]byte(fmt.Sprintf("  %%%v = load i8, ptr %%%v, align 1\n", p.localIndex+4, p.localIndex+3)))
-	p.w.Write([]byte(fmt.Sprintf("  %%%v = sub i8 %%%v, %v\n", p.localIndex+5, p.localIndex+4, offset)))
+	// add
+	p.w.Write([]byte(fmt.Sprintf("  %%%v = load i8, ptr %%%v, align 4\n", p.localIndex+1, p.localIndex)))
+	p.w.Write([]byte(fmt.Sprintf("  %%%v = sub i8 %%%v, %v\n", p.localIndex+2, p.localIndex+1, offset)))
 
 	// save
-	p.w.Write([]byte(fmt.Sprintf("  store i8 %%%v, ptr %%%v, align 1\n\n", p.localIndex+5, p.localIndex+3)))
+	p.w.Write([]byte(fmt.Sprintf("  store i8 %%%v, ptr %%%v, align 1\n\n", p.localIndex+2, p.localIndex)))
 
-	p.localIndex += 6
+	p.localIndex += 3
 }
 
 func (p *program) emitDot() {
 	p.w.Write([]byte(";dot\n"))
-	p.w.Write([]byte(fmt.Sprintf("  %%%v = load ptr, ptr %%1, align 8\n", p.localIndex)))
-	p.w.Write([]byte(fmt.Sprintf("  %%%v = load i32, ptr %%2, align 4\n", p.localIndex+1)))
-	p.w.Write([]byte(fmt.Sprintf("  %%%v = zext i32 %%%v to i64\n", p.localIndex+2, p.localIndex+1)))
-	p.w.Write([]byte(fmt.Sprintf("  %%%v = getelementptr inbounds i8, ptr %%%v, i64 %%%v\n", p.localIndex+3, p.localIndex, p.localIndex+2)))
-	p.w.Write([]byte(fmt.Sprintf("  %%%v = load i8, ptr %%%v, align 1\n", p.localIndex+4, p.localIndex+3)))
-	p.w.Write([]byte(fmt.Sprintf("  %%%v = sext i8 %%%v to i32\n", p.localIndex+5, p.localIndex+4)))
-	p.w.Write([]byte(fmt.Sprintf("  %%%v = call i32 @putchar(i32 noundef %%%v)\n", p.localIndex+6, p.localIndex+5)))
-	p.localIndex += 7
+	p.w.Write([]byte(fmt.Sprintf("%%%v = load ptr, ptr %%2, align 8\n", p.localIndex)))
+	p.w.Write([]byte(fmt.Sprintf("%%%v = load i8, ptr %%%v, align 1\n", p.localIndex+1, p.localIndex)))
+	p.w.Write([]byte(fmt.Sprintf("%%%v = sext i8 %%%v to i32\n", p.localIndex+2, p.localIndex+1)))
+	p.w.Write([]byte(fmt.Sprintf("%%%v = call i32 @putchar(i32 noundef %%%v)\n", p.localIndex+3, p.localIndex+2)))
+	p.localIndex += 4
 }
 
 func (p *program) emitLoopStart() {
@@ -162,17 +156,14 @@ func (p *program) emitLoopStart() {
 
 	// 最初の一回をやるか判断
 	p.w.Write([]byte(fmt.Sprintf("\nloop_start_%v:\n", p.loopLabel)))
-	p.w.Write([]byte(fmt.Sprintf("  %%%v = load ptr, ptr %%1, align 8\n", p.localIndex)))
-	p.w.Write([]byte(fmt.Sprintf("  %%%v = load i32, ptr %%2, align 4\n", p.localIndex+1)))
-	p.w.Write([]byte(fmt.Sprintf("  %%%v = zext i32 %%%v to i64\n", p.localIndex+2, p.localIndex+1)))
-	p.w.Write([]byte(fmt.Sprintf("  %%%v = getelementptr inbounds i8, ptr %%%v, i64 %%%v\n", p.localIndex+3, p.localIndex, p.localIndex+2)))
-	p.w.Write([]byte(fmt.Sprintf("  %%%v = load i8, ptr %%%v, align 1\n", p.localIndex+4, p.localIndex+3)))
-	p.w.Write([]byte(fmt.Sprintf("  %%%v = icmp ne i8 %%%v, 0\n", p.localIndex+5, p.localIndex+4)))
-	p.w.Write([]byte(fmt.Sprintf("  br i1 %%%v, label %%loop_body_%v, label %%loop_end_%v\n", p.localIndex+5, p.loopLabel, p.loopLabel)))
+	p.w.Write([]byte(fmt.Sprintf("  %%%v = load ptr, ptr %%2, align 8\n", p.localIndex)))
+	p.w.Write([]byte(fmt.Sprintf("  %%%v = load i8, ptr %%%v, align 1\n", p.localIndex+1, p.localIndex)))
+	p.w.Write([]byte(fmt.Sprintf("  %%%v = icmp ne i8 %%%v, 0\n", p.localIndex+2, p.localIndex+1)))
+	p.w.Write([]byte(fmt.Sprintf("  br i1 %%%v, label %%loop_body_%v, label %%loop_end_%v\n", p.localIndex+2, p.loopLabel, p.loopLabel)))
 
 	p.w.Write([]byte(fmt.Sprintf("\nloop_body_%v:\n\n", p.loopLabel)))
 	p.loopLabel++
-	p.localIndex += 6
+	p.localIndex += 3
 }
 
 func (p *program) emitLoopEnd() {
@@ -180,13 +171,10 @@ func (p *program) emitLoopEnd() {
 	p.labelStack = p.labelStack[:len(p.labelStack)-1]
 
 	// 最初に戻るか判断
-	p.w.Write([]byte(fmt.Sprintf("  %%%v = load ptr, ptr %%1, align 8\n", p.localIndex)))
-	p.w.Write([]byte(fmt.Sprintf("  %%%v = load i32, ptr %%2, align 4\n", p.localIndex+1)))
-	p.w.Write([]byte(fmt.Sprintf("  %%%v = zext i32 %%%v to i64\n", p.localIndex+2, p.localIndex+1)))
-	p.w.Write([]byte(fmt.Sprintf("  %%%v = getelementptr inbounds i8, ptr %%%v, i64 %%%v\n", p.localIndex+3, p.localIndex, p.localIndex+2)))
-	p.w.Write([]byte(fmt.Sprintf("  %%%v = load i8, ptr %%%v, align 1\n", p.localIndex+4, p.localIndex+3)))
-	p.w.Write([]byte(fmt.Sprintf("  %%%v = icmp eq i8 %%%v, 0\n", p.localIndex+5, p.localIndex+4)))
-	p.w.Write([]byte(fmt.Sprintf("  br i1 %%%v, label %%loop_end_%v, label %%loop_body_%v\n", p.localIndex+5, label, label)))
+	p.w.Write([]byte(fmt.Sprintf("  %%%v = load ptr, ptr %%2, align 8\n", p.localIndex)))
+	p.w.Write([]byte(fmt.Sprintf("  %%%v = load i8, ptr %%%v, align 1\n", p.localIndex+1, p.localIndex)))
+	p.w.Write([]byte(fmt.Sprintf("  %%%v = icmp eq i8 %%%v, 0\n", p.localIndex+2, p.localIndex+1)))
+	p.w.Write([]byte(fmt.Sprintf("  br i1 %%%v, label %%loop_end_%v, label %%loop_body_%v\n", p.localIndex+2, label, label)))
 	p.w.Write([]byte(fmt.Sprintf("\nloop_end_%v:\n\n", label)))
-	p.localIndex += 6
+	p.localIndex += 3
 }
