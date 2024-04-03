@@ -45,13 +45,13 @@ func main() {
 		}
 	}
 
-	parseed, err := tool.Parse(content.Bytes())
+	parsed, err := tool.Parse(content.Bytes())
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "parse:", err)
 		os.Exit(1)
 	}
 
-	hoge := optimizer.SumShift(optimizer.SumIncrDecr(parseed))
+	hoge := optimizer.SumShift(optimizer.SumIncrDecr(optimizer.ResetToZeroPattern(parsed)))
 
 	buf := strings.Builder{}
 	p := NewProgram(&buf)
@@ -73,6 +73,8 @@ func main() {
 			p.emitLoopStart()
 		case instr.OpLoopEnd:
 			p.emitLoopEnd()
+		case instr.OpZeroReset:
+			p.emitResetToZero()
 		}
 	}
 
@@ -177,4 +179,10 @@ func (p *program) emitLoopEnd() {
 	p.w.Write([]byte(fmt.Sprintf("  br i1 %%%v, label %%loop_end_%v, label %%loop_body_%v\n", p.localIndex+2, label, label)))
 	p.w.Write([]byte(fmt.Sprintf("\nloop_end_%v:\n\n", label)))
 	p.localIndex += 3
+}
+
+func (p *program) emitResetToZero() {
+	p.w.Write([]byte(fmt.Sprintf("  %%%v = load ptr, ptr %%2, align 8\n", p.localIndex)))
+	p.w.Write([]byte(fmt.Sprintf("  store i8 0, ptr %%%v, align 1\n", p.localIndex)))
+	p.localIndex++
 }
