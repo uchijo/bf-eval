@@ -23,46 +23,65 @@ func Eval(src []instr.Instruction) {
 			break
 		}
 
-		switch src[pc].Op {
-		case instr.OpLoopEnd:
+		op := src[pc].Op
+		if op == instr.OpLoopEnd {
 			if mem.Get(memPtr) != 0 {
 				pc = jumpDest[pc]
 			}
-		case instr.OpShiftRight:
+			goto done
+		}
+		if op == instr.OpShiftRight {
 			memPtr += src[pc].Data
-		case instr.OpShiftLeft:
+			goto done
+		}
+		if op == instr.OpShiftLeft {
 			memPtr -= src[pc].Data
-		case instr.OpAddMem:
+			goto done
+		}
+		if op == instr.OpAddMem {
 			mem.AddTo(memPtr+src[pc].Data, mem.Get(memPtr))
 			mem.Set(memPtr, 0)
-		case instr.OpLoopStart:
+			goto done
+		}
+		if op == instr.OpLoopStart {
 			if mem.Get(memPtr) == 0 {
 				pc = jumpDest[pc]
 			}
-		case instr.OpIncr:
+			goto done
+		}
+		if op == instr.OpIncr {
 			mem.AddTo(memPtr, uint8(src[pc].Data))
-		case instr.OpDecr:
+			goto done
+		}
+		if op == instr.OpDecr {
 			mem.SubFrom(memPtr, uint8(src[pc].Data))
-		case instr.OpZeroReset:
+			goto done
+		}
+		if op == instr.OpZeroReset {
 			mem.Set(memPtr, 0)
-		case instr.OpMultiShift:
+			goto done
+		}
+		if op == instr.OpMultiShift {
 			for mem.Get(memPtr) != 0 {
 				memPtr += src[pc].Data
 			}
-		case instr.OpSubMem:
+			goto done
+		}
+		if op == instr.OpSubMem {
 			mem.SubFrom(memPtr+src[pc].Data, mem.Get(memPtr))
 			mem.Set(memPtr, 0)
-		case instr.OpOutput:
+			goto done
+		}
+		if op == instr.OpOutput {
 			buf = append(buf, mem.Get(memPtr))
 			if len(buf) >= 4096 {
 				w.Write(buf)
 				buf = []byte{}
 			}
-			// case instr.OpInput:
-			// 	counts[instr.OpInput]++
-			// 	// not implemented
+			goto done
 		}
-
+		
+		done:
 		pc++
 	}
 	if len(buf) > 0 {
